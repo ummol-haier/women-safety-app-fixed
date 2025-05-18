@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'db_helper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Guardian {
   final int? id;
@@ -11,6 +12,7 @@ class Guardian {
   final String email;
   final String password;
   final bool isLoggedIn;
+  final bool isFemale;
 
   Guardian({
     this.id,
@@ -22,6 +24,7 @@ class Guardian {
     required this.email,
     required this.password,
     this.isLoggedIn = false,
+    this.isFemale = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -35,6 +38,7 @@ class Guardian {
       'email': email,
       'password': password,
       'isLoggedIn': isLoggedIn ? 1 : 0,
+      'isFemale': isFemale ? 1 : 0,
     };
   }
 
@@ -49,6 +53,7 @@ class Guardian {
       email: map['email'] ?? '',
       password: map['password'] ?? '',
       isLoggedIn: map['isLoggedIn'] == 1,
+      isFemale: (map['isFemale'] ?? 0) == 1,
     );
   }
 }
@@ -65,7 +70,8 @@ class GuardianDB {
         isBlocked INTEGER,
         email TEXT,
         password TEXT,
-        isLoggedIn INTEGER
+        isLoggedIn INTEGER,
+        isFemale INTEGER
       )
     ''');
   }
@@ -143,6 +149,23 @@ class GuardianDB {
     final db = await DBHelper().database;
     final guardian = await getLoggedInGuardian();
     if (guardian != null && guardian.id != null) {
+      await db.delete('guardians', where: 'id = ?', whereArgs: [guardian.id]);
+    }
+  }
+
+  static Future<void> deleteLoggedInGuardianAndFirestore() async {
+    final db = await DBHelper().database;
+    final guardian = await getLoggedInGuardian();
+    if (guardian != null && guardian.id != null) {
+      try {
+        final firestore = FirebaseFirestore.instance;
+        // Remove guardian_links doc for this guardian
+        await firestore.collection('guardian_links').doc(guardian.userPhone).delete();
+        // Remove alert doc for this guardian
+        await firestore.collection('alerts').doc(guardian.userPhone).delete();
+      } catch (e) {
+        print('Firestore cleanup error: ' + e.toString());
+      }
       await db.delete('guardians', where: 'id = ?', whereArgs: [guardian.id]);
     }
   }

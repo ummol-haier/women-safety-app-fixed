@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'db_helper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class User {
   final int? id;
@@ -8,8 +9,17 @@ class User {
   final String email;
   final String role; // User or Guardian
   final bool isLoggedIn;
+  final String gender;
 
-  User({this.id, required this.name, required this.phone, required this.email, required this.role, this.isLoggedIn = false});
+  User({
+    this.id,
+    required this.name,
+    required this.phone,
+    required this.email,
+    required this.role,
+    this.isLoggedIn = false,
+    required this.gender,
+  });
 
   // Always normalize phone number before saving toMap
   Map<String, dynamic> toMap() {
@@ -29,6 +39,7 @@ class User {
       'email': email,
       'role': role,
       'isLoggedIn': isLoggedIn ? 1 : 0,
+      'gender': gender,
     };
   }
 
@@ -49,6 +60,7 @@ class User {
       email: map['email'],
       role: map['role'],
       isLoggedIn: map['isLoggedIn'] == 1,
+      gender: map['gender'] ?? '',
     );
   }
 }
@@ -62,7 +74,8 @@ class UserDB {
         phone TEXT,
         email TEXT,
         role TEXT,
-        isLoggedIn INTEGER
+        isLoggedIn INTEGER,
+        gender TEXT
       )
     ''');
   }
@@ -102,6 +115,30 @@ class UserDB {
     final db = await DBHelper().database;
     final user = await getLoggedInUser();
     if (user != null && user.id != null) {
+      await db.delete('users', where: 'id = ?', whereArgs: [user.id]);
+    }
+  }
+
+  static Future<void> deleteLoggedInUserAndFirestore() async {
+    final db = await DBHelper().database;
+    final user = await getLoggedInUser();
+    if (user != null && user.id != null) {
+      // Remove from Firestore (guardian_links and alerts)
+      try {
+        // Remove user from all guardian_links (where this user is listed as a guardian's user)
+        // This is a best-effort cleanup; you may want to adjust for your schema
+        final firestore = FirebaseFirestore.instance;
+        final guardianLinks = await firestore.collection('guardian_links').get();
+        for (final doc in guardianLinks.docs) {
+          final guardians = (doc.data()['guardians'] ?? []) as List;
+          guardians.removeWhere((g) => (g['userPhone'] ?? '') == user.phone);
+          await doc.reference.update({'guardians': guardians});
+        }
+        // Remove any alert for this user (if you store by user phone)
+        await firestore.collection('alerts').doc(user.phone).delete();
+      } catch (e) {
+        print('Firestore cleanup error: ' + e.toString());
+      }
       await db.delete('users', where: 'id = ?', whereArgs: [user.id]);
     }
   }

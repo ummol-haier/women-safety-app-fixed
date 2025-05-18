@@ -14,15 +14,26 @@ class _UserSignupScreenState extends State<UserSignupScreen> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  String? _selectedGender;
 
   void _signup() async {
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
-    if (name.isEmpty || phone.isEmpty || email.isEmpty || password.isEmpty) {
+    if (name.isEmpty ||
+        phone.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        _selectedGender == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields')),
+        const SnackBar(content: Text('Please fill all fields and select gender')),
+      );
+      return;
+    }
+    if (_selectedGender == 'male') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Male users cannot sign up. Only females can sign up as users.')),
       );
       return;
     }
@@ -32,6 +43,7 @@ class _UserSignupScreenState extends State<UserSignupScreen> {
       email: email,
       role: 'User',
       isLoggedIn: true,
+      gender: _selectedGender!,
     );
     await UserDB.logoutAll();
     await UserDB.insertUser(user);
@@ -70,6 +82,20 @@ class _UserSignupScreenState extends State<UserSignupScreen> {
               controller: _passwordController,
               obscureText: true,
               decoration: const InputDecoration(labelText: 'Password'),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _selectedGender,
+              items: const [
+                DropdownMenuItem(value: 'female', child: Text('Female')),
+                DropdownMenuItem(value: 'male', child: Text('Male')),
+              ],
+              onChanged: (val) {
+                setState(() {
+                  _selectedGender = val;
+                });
+              },
+              decoration: const InputDecoration(labelText: 'Gender'),
             ),
             const SizedBox(height: 24),
             ElevatedButton(

@@ -5,7 +5,8 @@ import '../../database/user_db.dart';
 import '../role_selection_screen.dart';
 
 class UserHomeScreen extends StatelessWidget {
-  const UserHomeScreen({super.key});
+  final bool fromGuardianMode;
+  const UserHomeScreen({super.key, this.fromGuardianMode = false});
 
   void navigateToNeedHelpScreen(BuildContext context) {
     Navigator.push(
@@ -29,6 +30,12 @@ class UserHomeScreen extends StatelessWidget {
         title: const Text('User Home'),
         backgroundColor: Colors.pink,
         actions: [
+          if (fromGuardianMode)
+            IconButton(
+              icon: const Icon(Icons.switch_account),
+              tooltip: 'Back to Guardian Mode',
+              onPressed: () => Navigator.pop(context),
+            ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
@@ -84,7 +91,7 @@ class UserHomeScreen extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: () async {
                 // Delete account logic
-                await UserDB.deleteLoggedInUser();
+                await UserDB.deleteLoggedInUserAndFirestore();
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (_) => const RoleSelectionScreen()),

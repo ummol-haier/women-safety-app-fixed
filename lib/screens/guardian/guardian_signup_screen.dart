@@ -59,6 +59,7 @@ class _GuardianSignupScreenState extends State<GuardianSignupScreen> {
       email: email,
       password: password,
       isLoggedIn: true,
+      isFemale: _selectedGender == 'female',
     );
     try {
       final id = await GuardianDB.insertGuardian(guardian);

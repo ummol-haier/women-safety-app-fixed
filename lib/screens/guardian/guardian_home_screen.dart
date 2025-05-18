@@ -5,6 +5,8 @@ import '../../../services/alert_listener.dart';
 import '../../utils/auth_helper.dart';
 import '../role_selection_screen.dart';
 import '../../database/guardian_db.dart';
+import '../../database/user_db.dart';
+import '../user/user_home_screen.dart';
 
 class GuardianHomeScreen extends StatefulWidget {
   const GuardianHomeScreen({super.key});
@@ -95,9 +97,31 @@ class _GuardianHomeScreenState extends State<GuardianHomeScreen> {
     );
   }
 
-  void _switchToUserMode() {
-    // TODO: Implement navigation to user mode (if female guardian)
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Switch to user mode (not implemented)')));
+  void _switchToUserMode() async {
+    final guardian = await GuardianDB.getLoggedInGuardian();
+    if (guardian != null && guardian.isFemale) {
+      final users = await UserDB.getUsers();
+      final userForGuardian = users.firstWhere(
+        (u) => u.phone == guardian.userPhone,
+        orElse: () => null as dynamic, // workaround for null
+      );
+      if (userForGuardian != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => UserHomeScreen(fromGuardianMode: true),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No user account found for this phone.')),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Switch to user mode is only for female guardians.')),
+      );
+    }
   }
 
   @override
@@ -132,6 +156,27 @@ class _GuardianHomeScreenState extends State<GuardianHomeScreen> {
                   const SnackBar(
                     content: Text('Account deleted successfully'),
                     backgroundColor: Colors.red,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () async {
+              await GuardianDB.logoutAll();
+              if (mounted) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const RoleSelectionScreen()),
+                  (route) => false,
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Logged out successfully'),
+                    backgroundColor: Colors.green,
                     duration: Duration(seconds: 2),
                   ),
                 );
