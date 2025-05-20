@@ -169,4 +169,13 @@ class GuardianDB {
       await db.delete('guardians', where: 'id = ?', whereArgs: [guardian.id]);
     }
   }
+
+  static Future<void> onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Add the isFemale column if it doesn't exist
+      await db.execute('ALTER TABLE guardians ADD COLUMN isFemale INTEGER DEFAULT 0');
+    }
+  }
+
+  static getAllGuardians() {}
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'guardian_home_screen.dart';
 import '../../database/guardian_db.dart';
+import 'package:ally/models/guardian_model.dart'; 
 
 class GuardianSignupScreen extends StatefulWidget {
   const GuardianSignupScreen({super.key});

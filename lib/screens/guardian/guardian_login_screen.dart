@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../widgets/custom_button.dart';
 import '../../../widgets/custom_textfield.dart';
 import 'guardian_home_screen.dart';
@@ -34,11 +35,20 @@ class GuardianLoginScreen extends StatelessWidget {
             const SizedBox(height: 24),
             CustomButton(
               text: "Login",
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const GuardianHomeScreen()),
-                );
+              onPressed: () async {
+                final guardianPhone = phoneController.text.trim();
+                if (guardianPhone.isNotEmpty) {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setString('guardianPhone', guardianPhone);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const GuardianHomeScreen()),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter a valid phone number.')),
+                  );
+                }
               },
             ),
             const SizedBox(height: 12),

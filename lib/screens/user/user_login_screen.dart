@@ -4,6 +4,7 @@ import '../../../widgets/custom_textfield.dart';
 import 'user_home_screen.dart';
 import 'user_signup_screen.dart';
 import '../../../database/user_db.dart';
+import 'package:ally/models/user_model.dart';
 
 class UserLoginScreen extends StatelessWidget {
   final TextEditingController phoneController = TextEditingController();

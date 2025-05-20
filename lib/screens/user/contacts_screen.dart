@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../database/emergency_contact_db.dart';
 import '../../database/user_db.dart';
+import 'package:ally/models/contact_model.dart'; 
 
 class ContactsScreen extends StatefulWidget {
   const ContactsScreen({super.key});
@@ -59,6 +60,14 @@ class _ContactsScreenState extends State<ContactsScreen> {
           'guardians': FieldValue.arrayUnion([
             {
               'userName': user.name,
+              'userPhone': normalizePhone(user.phone),
+              'note': '',
+            }
+          ]),
+          'addedBy': FieldValue.arrayUnion([
+            {
+              'uid': user.uid,
+              'name': user.name,
               'userPhone': normalizePhone(user.phone),
               'note': '',
             }

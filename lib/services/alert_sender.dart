@@ -1,7 +1,6 @@
 // ignore: depend_on_referenced_packages
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:location/location.dart';
 import 'package:flutter/material.dart';
 
 class AlertSender {
@@ -15,11 +14,7 @@ class AlertSender {
 
       final userId = user.uid;
 
-      // Step 1: Get user name from Firestore
-      final userDoc = await _firestore.collection('users').doc(userId).get();
-      final userName = userDoc.data()?['name'] ?? 'Someone';
-
-      // Step 2: Get guardians from subcollection
+      // Step 1: Get guardians from Firestore
       final guardiansSnapshot = await _firestore
           .collection('users')
           .doc(userId)
@@ -27,24 +22,16 @@ class AlertSender {
           .get();
 
       final guardianPhones = guardiansSnapshot.docs
-          .map((doc) => doc.data()['phone'] as String)
+          .map((doc) => doc.id) // Guardian phone numbers
           .toList();
 
       if (guardianPhones.isEmpty) throw Exception('No guardians saved');
 
-      // Step 3: Get current location
-      final location = Location();
-      final locData = await location.getLocation();
-
-      final locationUrl =
-          'https://www.google.com/maps?q=${locData.latitude},${locData.longitude}';
-
-      // Step 4: Send alert to each guardian (via Firestore)
+      // Step 2: Send alert to each guardian
       for (final phone in guardianPhones) {
         await _firestore.collection('alerts').doc(phone).set({
           'isAlert': true,
-          'userName': userName,
-          'locationUrl': locationUrl,
+          'userName': user.displayName ?? 'Someone',
           'timestamp': FieldValue.serverTimestamp(),
         });
       }
@@ -58,7 +45,6 @@ class AlertSender {
         SnackBar(content: Text('❌ Failed to send alert: $e')),
       );
       print('❌ Error sending alert: $e');
-      rethrow;
     }
   }
 }

@@ -9,7 +9,8 @@ class User {
   final String email;
   final String role; // User or Guardian
   final bool isLoggedIn;
-  final String gender;
+  final String? gender; // Made optional
+  final String? uid; // Added uid field to the User class
 
   User({
     this.id,
@@ -18,7 +19,8 @@ class User {
     required this.email,
     required this.role,
     this.isLoggedIn = false,
-    required this.gender,
+    this.gender, // Updated to optional
+    this.uid, // Initialize uid
   });
 
   // Always normalize phone number before saving toMap
@@ -39,7 +41,7 @@ class User {
       'email': email,
       'role': role,
       'isLoggedIn': isLoggedIn ? 1 : 0,
-      'gender': gender,
+      'gender': gender, // Optional field
     };
   }
 
@@ -60,8 +62,22 @@ class User {
       email: map['email'],
       role: map['role'],
       isLoggedIn: map['isLoggedIn'] == 1,
-      gender: map['gender'] ?? '',
+      gender: map['gender'], // Optional field
     );
+  }
+
+  static Future<void> createTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        phone TEXT,
+        email TEXT,
+        role TEXT,
+        isLoggedIn INTEGER,
+        gender TEXT NULL
+      )
+    ''');
   }
 }
 
@@ -140,6 +156,38 @@ class UserDB {
         print('Firestore cleanup error: ' + e.toString());
       }
       await db.delete('users', where: 'id = ?', whereArgs: [user.id]);
+    }
+  }
+
+  static getAllUsers() {}
+
+  static Future<void> addGuardianToFirestore({
+    required String userPhone,
+    required String guardianPhone,
+    required String guardianName,
+    String? note,
+    bool isPrimary = false,
+    bool isBlocked = false,
+  }) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+
+      // Add guardian to Firestore
+      await firestore
+          .collection('users')
+          .doc(userPhone) // User's phone number as document ID
+          .collection('guardians')
+          .doc(guardianPhone) // Guardian's phone number as document ID
+          .set({
+        'name': guardianName,
+        'note': note ?? '',
+        'isPrimary': isPrimary,
+        'blocked': isBlocked,
+      });
+
+      print('✅ Guardian added to Firestore successfully.');
+    } catch (e) {
+      print('❌ Failed to add guardian to Firestore: $e');
     }
   }
 }

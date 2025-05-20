@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'user_home_screen.dart';
 import '../../../database/user_db.dart';
+import 'package:ally/models/user_model.dart';
+
 
 class UserSignupScreen extends StatefulWidget {
   const UserSignupScreen({super.key});
@@ -14,44 +16,60 @@ class _UserSignupScreenState extends State<UserSignupScreen> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  String? _selectedGender;
 
   void _signup() async {
+  print('Signup Started');
+  try {
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
+
+    // Fetch all existing users
+    final existingUsers = await UserDB.getUsers();
+    bool isDuplicate = existingUsers.any((user) =>
+        user.email == email ||
+        user.phone == phone);
+
+    if (isDuplicate) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email or phone already exists!')),
+      );
+      return;
+    }
+
     if (name.isEmpty ||
         phone.isEmpty ||
         email.isEmpty ||
-        password.isEmpty ||
-        _selectedGender == null) {
+        password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields and select gender')),
+        const SnackBar(content: Text('Please fill all fields')),
       );
       return;
     }
-    if (_selectedGender == 'male') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Male users cannot sign up. Only females can sign up as users.')),
-      );
-      return;
-    }
+
     final user = User(
       name: name,
       phone: phone,
       email: email,
       role: 'User',
       isLoggedIn: true,
-      gender: _selectedGender!,
     );
     await UserDB.logoutAll();
-    await UserDB.insertUser(user);
+    final newUserId = await UserDB.insertUser(user);
+    await UserDB.setLoggedIn(newUserId);
+    print('Navigating to UserHomeScreen');
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const UserHomeScreen()),
     );
+  } catch (e) {
+    print('Signup error: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Signup failed: $e')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -82,20 +100,6 @@ class _UserSignupScreenState extends State<UserSignupScreen> {
               controller: _passwordController,
               obscureText: true,
               decoration: const InputDecoration(labelText: 'Password'),
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              value: _selectedGender,
-              items: const [
-                DropdownMenuItem(value: 'female', child: Text('Female')),
-                DropdownMenuItem(value: 'male', child: Text('Male')),
-              ],
-              onChanged: (val) {
-                setState(() {
-                  _selectedGender = val;
-                });
-              },
-              decoration: const InputDecoration(labelText: 'Gender'),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
