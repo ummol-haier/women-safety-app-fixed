@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../database/user_db.dart';
@@ -15,24 +14,37 @@ class AlertSender {
       final userPhone = user.phone;
       final userName = user.name;
 
-      // Step 1: Get guardians from Firestore
-      final guardiansSnapshot = await _firestore
-          .collection('users')
+      // Debug prints to help diagnose the issue
+      print('🔍 Debug Info:');
+      print('User Phone: $userPhone');
+      print('User Name: $userName');
+
+      // Step 1: Get guardians from Firestore (corrected path)
+      final docSnapshot = await _firestore
+          .collection('guardian_links')
           .doc(userPhone)
-          .collection('guardians')
           .get();
 
-      final guardianPhones = guardiansSnapshot.docs
-          .map((doc) => doc.id) // Guardian phone numbers
-          .toList();
+      print('Document Path: guardian_links/$userPhone');
+      print('Document Exists: ${docSnapshot.exists}');
+      print('Document Data: ${docSnapshot.data()}');
 
-      if (guardianPhones.isEmpty) throw Exception('No guardians saved');
+
+      if (!docSnapshot.exists) throw Exception('No guardians saved');
+      
+      final data = docSnapshot.data();
+      if (data == null || !data.containsKey('guardians') || !(data['guardians'] is Map) || (data['guardians'] as Map).isEmpty) {
+        throw Exception('No guardians saved');
+      }
+
+      final guardiansMap = data['guardians'] as Map;
+      final guardianPhones = guardiansMap.keys.toList();
 
       // Step 2: Send alert to each guardian
       for (final phone in guardianPhones) {
         await _firestore.collection('alerts').doc(phone).set({
           'isAlert': true,
-          'userName': userName ?? 'Someone',
+          'userName': userName,
           'timestamp': FieldValue.serverTimestamp(),
         });
       }

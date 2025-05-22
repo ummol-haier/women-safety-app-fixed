@@ -3,7 +3,7 @@ import 'user/user_login_screen.dart';
 import 'guardian/guardian_login_screen.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
-  const RoleSelectionScreen({Key? key}) : super(key: key);
+  const RoleSelectionScreen({super.key});
 
   static const Color userButtonColor = Color(0xFFE91E63); // Pink
   static const Color guardianButtonColor = Color(0xFF673AB7); // Purple
