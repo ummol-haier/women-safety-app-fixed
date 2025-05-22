@@ -26,6 +26,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        resValue("mipmap", "ic_launcher", "@mipmap/ic_launcher")
     }
 
     buildTypes {

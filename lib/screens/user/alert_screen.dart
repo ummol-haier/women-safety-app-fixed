@@ -1,18 +1,14 @@
 // lib/screens/user/alert_screen.dart
 import 'package:flutter/material.dart';
+import '../../services/alert_sender.dart';
 
 class AlertScreen extends StatelessWidget {
-  const AlertScreen({Key? key}) : super(key: key);
+  const AlertScreen({super.key});
 
-  void _sendAlert(BuildContext context) {
-    // এখানে future logic থাকবে API/notification/send এর জন্য
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('🚨 Alert sent to all guardians!'),
-        backgroundColor: Colors.redAccent,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+  final AlertSender _alertSender = AlertSender();
+
+  void _sendAlert(BuildContext context) async {
+    await _alertSender.sendAlertToAllGuardians(context);
   }
 
   @override

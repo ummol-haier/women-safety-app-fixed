@@ -4,6 +4,7 @@ import '../../../widgets/custom_button.dart';
 import '../../../widgets/custom_textfield.dart';
 import 'guardian_home_screen.dart';
 import 'guardian_signup_screen.dart';
+import '../../database/guardian_db.dart';
 
 class GuardianLoginScreen extends StatelessWidget {
   final TextEditingController phoneController = TextEditingController();
@@ -37,7 +38,18 @@ class GuardianLoginScreen extends StatelessWidget {
               text: "Login",
               onPressed: () async {
                 final guardianPhone = phoneController.text.trim();
-                if (guardianPhone.isNotEmpty) {
+                final password = passwordController.text.trim();
+                if (guardianPhone.isEmpty || password.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter both phone number and password.')),
+                  );
+                  return;
+                }
+                // Validate guardian credentials
+                final guardian = await GuardianDB.checkGuardianLogin(guardianPhone, password);
+                if (guardian != null) {
+                  // Set logged in
+                  await GuardianDB.setLoggedIn(guardian.id!);
                   final prefs = await SharedPreferences.getInstance();
                   await prefs.setString('guardianPhone', guardianPhone);
                   Navigator.pushReplacement(
@@ -46,7 +58,7 @@ class GuardianLoginScreen extends StatelessWidget {
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please enter a valid phone number.')),
+                    const SnackBar(content: Text('Invalid phone number or password.')),
                   );
                 }
               },

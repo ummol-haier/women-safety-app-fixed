@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'guardian_home_screen.dart';
 import '../../database/guardian_db.dart';
-import 'package:ally/models/guardian_model.dart'; 
 
 class GuardianSignupScreen extends StatefulWidget {
   const GuardianSignupScreen({super.key});
@@ -21,9 +20,9 @@ class _GuardianSignupScreenState extends State<GuardianSignupScreen> {
   String normalizePhone(String phone) {
     String p = phone.replaceAll(RegExp(r'[^0-9+]'), '');
     if (p.startsWith('0')) {
-      p = '+88' + p.substring(1);
+      p = '+88${p.substring(1)}';
     } else if (!p.startsWith('+88')) {
-      p = '+88' + p;
+      p = '+88$p';
     }
     return p;
   }
@@ -34,7 +33,7 @@ class _GuardianSignupScreenState extends State<GuardianSignupScreen> {
     final phone = normalizePhone(_phoneController.text.trim());
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
-    print('Guardian signup phone (normalized): ' + phone);
+    print('Guardian signup phone (normalized): $phone');
     if (name.isEmpty || phone.isEmpty || email.isEmpty || password.isEmpty || _selectedGender == null) {
       print('Validation failed');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,7 +63,7 @@ class _GuardianSignupScreenState extends State<GuardianSignupScreen> {
     );
     try {
       final id = await GuardianDB.insertGuardian(guardian);
-      print('Guardian inserted with id: ' + id.toString());
+      print('Guardian inserted with id: $id');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Signup successful!')),
       );
@@ -75,9 +74,9 @@ class _GuardianSignupScreenState extends State<GuardianSignupScreen> {
         ),
       );
     } catch (e) {
-      print('DB insert error: ' + e.toString());
+      print('DB insert error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Signup failed: ' + e.toString())),
+        SnackBar(content: Text('Signup failed: $e')),
       );
     }
   }

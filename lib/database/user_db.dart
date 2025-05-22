@@ -28,9 +28,9 @@ class User {
     String normalizePhone(String phone) {
       String p = phone.replaceAll(RegExp(r'[^0-9+]'), '');
       if (p.startsWith('0')) {
-        p = '+88' + p.substring(1);
+        p = '+88${p.substring(1)}';
       } else if (!p.startsWith('+88')) {
-        p = '+88' + p;
+        p = '+88$p';
       }
       return p;
     }
@@ -49,9 +49,9 @@ class User {
     String normalizePhone(String phone) {
       String p = phone.replaceAll(RegExp(r'[^0-9+]'), '');
       if (p.startsWith('0')) {
-        p = '+88' + p.substring(1);
+        p = '+88${p.substring(1)}';
       } else if (!p.startsWith('+88')) {
-        p = '+88' + p;
+        p = '+88$p';
       }
       return p;
     }
@@ -153,7 +153,7 @@ class UserDB {
         // Remove any alert for this user (if you store by user phone)
         await firestore.collection('alerts').doc(user.phone).delete();
       } catch (e) {
-        print('Firestore cleanup error: ' + e.toString());
+        print('Firestore cleanup error: $e');
       }
       await db.delete('users', where: 'id = ?', whereArgs: [user.id]);
     }

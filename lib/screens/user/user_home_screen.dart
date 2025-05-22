@@ -3,7 +3,6 @@ import 'need_help_screen.dart';
 import 'contacts_screen.dart';
 import '../../database/user_db.dart';
 import '../role_selection_screen.dart';
-import 'package:ally/models/user_model.dart';
 
 
 class UserHomeScreen extends StatelessWidget {

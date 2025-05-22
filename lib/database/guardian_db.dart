@@ -164,7 +164,7 @@ class GuardianDB {
         // Remove alert doc for this guardian
         await firestore.collection('alerts').doc(guardian.userPhone).delete();
       } catch (e) {
-        print('Firestore cleanup error: ' + e.toString());
+        print('Firestore cleanup error: $e');
       }
       await db.delete('guardians', where: 'id = ?', whereArgs: [guardian.id]);
     }

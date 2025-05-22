@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../database/emergency_contact_db.dart';
 import '../../database/user_db.dart';
-import 'package:ally/models/contact_model.dart'; 
 
 class ContactsScreen extends StatefulWidget {
   const ContactsScreen({super.key});
@@ -38,9 +37,9 @@ class _ContactsScreenState extends State<ContactsScreen> {
     // Remove spaces, dashes, and leading zeros, and ensure +88 for Bangladesh
     String p = phone.replaceAll(RegExp(r'[^0-9+]'), '');
     if (p.startsWith('0')) {
-      p = '+88' + p.substring(1);
+      p = '+88${p.substring(1)}';
     } else if (!p.startsWith('+88')) {
-      p = '+88' + p;
+      p = '+88$p';
     }
     return p;
   }
@@ -55,7 +54,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
     try {
       final user = await UserDB.getLoggedInUser();
       if (user != null) {
-        print('Saving guardian link for: ' + number);
+        print('Saving guardian link for: $number');
         await FirebaseFirestore.instance.collection('guardian_links').doc(number).set({
           'guardians': FieldValue.arrayUnion([
             {
@@ -75,7 +74,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
         }, SetOptions(merge: true));
       }
     } catch (e) {
-      print('Firestore error: ' + e.toString());
+      print('Firestore error: $e');
     }
     nameController.clear();
     numberController.clear();
@@ -168,7 +167,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                       await docRef.update({'guardians': guardians});
                     }
                   }
-                } catch (e) { print('Firestore update error: ' + e.toString()); }
+                } catch (e) { print('Firestore update error: $e'); }
                 nameController.clear();
                 numberController.clear();
                 Navigator.pop(context);

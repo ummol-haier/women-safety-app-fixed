@@ -43,19 +43,26 @@ class _GuardianHomeScreenState extends State<GuardianHomeScreen> {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     return firestore.collection('guardians').doc(guardianPhone).snapshots().asyncMap((guardianSnapshot) async {
       if (guardianSnapshot.exists) {
-        Map<String, dynamic> guardianData = guardianSnapshot.data()!;
-        List<Map<String, dynamic>> usersList = [];
+        final guardianData = guardianSnapshot.data();
+        if (guardianData == null) return [];
 
-        for (var userPhone in guardianData['linkedUsers']) {
-          final userDoc = await firestore.collection('users').doc(userPhone).get();
-          if (userDoc.exists) {
-            Map<String, dynamic> userData = userDoc.data()!;
-            usersList.add({
-              'userPhone': userPhone,
-              'userName': userData['name'] ?? 'Unknown User',
-              'note': guardianData['guardians'][userPhone]['note'] ?? '',
-              'isPrimary': guardianData['guardians'][userPhone]['isPrimary'] ?? false,
-            });
+        List<Map<String, dynamic>> usersList = [];
+        for (var userPhone in guardianData['linkedUsers'] ?? []) {
+          try {
+            final userDoc = await firestore.collection('users').doc(userPhone).get();
+            if (userDoc.exists) {
+              final userData = userDoc.data();
+              if (userData != null) {
+                usersList.add({
+                  'userPhone': userPhone,
+                  'userName': userData['name'] ?? 'Unknown User',
+                  'note': guardianData['guardians']?[userPhone]?['note'] ?? '',
+                  'isPrimary': guardianData['guardians']?[userPhone]?['isPrimary'] ?? false,
+                });
+              }
+            }
+          } catch (e) {
+            print('Error fetching user data for $userPhone: $e');
           }
         }
         return usersList;
@@ -74,22 +81,28 @@ class _GuardianHomeScreenState extends State<GuardianHomeScreen> {
     linkedUsers = [];
 
     if (guardianPhone != null && guardianPhone.isNotEmpty) {
-      final usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
+      try {
+        final usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
 
-      for (var userDoc in usersSnapshot.docs) {
-        final linkedUsersList = userDoc.data()['linkedUsers'] as List<dynamic>?;
-        final guardiansMap = userDoc.data()['guardians'] as Map<String, dynamic>?;
+        for (var userDoc in usersSnapshot.docs) {
+          final userData = userDoc.data();
+          final linkedUsersList = userData['linkedUsers'] as List<dynamic>?;
+          final guardiansMap = userData['guardians'] as Map<String, dynamic>?;
 
-        if (linkedUsersList != null && linkedUsersList.contains(guardianPhone) && guardiansMap != null) {
-          final guardianDetails = guardiansMap[guardianPhone];
-          final userData = {
-            "userPhone": userDoc.id,
-            "userName": userDoc.data()['name'] ?? "Unknown User",
-            "note": guardianDetails['note'] ?? '',
-            "isPrimary": guardianDetails['isPrimary'] ?? false,
-          };
-          linkedUsers.add(userData);
+          if (linkedUsersList != null && linkedUsersList.contains(guardianPhone) && guardiansMap != null) {
+            final guardianDetails = guardiansMap[guardianPhone];
+            if (guardianDetails != null) {
+              linkedUsers.add({
+                "userPhone": userDoc.id,
+                "userName": userData['name'] ?? "Unknown User",
+                "note": guardianDetails['note'] ?? '',
+                "isPrimary": guardianDetails['isPrimary'] ?? false,
+              });
+            }
+          }
         }
+      } catch (e) {
+        print('Error fetching linked users: $e');
       }
     }
 
@@ -152,7 +165,7 @@ class _GuardianHomeScreenState extends State<GuardianHomeScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => UserHomeScreen(fromGuardianMode: true),
+            builder: (_) => const UserHomeScreen(fromGuardianMode: true),
           ),
         );
       } else {

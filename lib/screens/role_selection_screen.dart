@@ -3,53 +3,74 @@ import 'user/user_login_screen.dart';
 import 'guardian/guardian_login_screen.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
-  const RoleSelectionScreen({super.key});
+  const RoleSelectionScreen({Key? key}) : super(key: key);
 
-  void navigateToUserLogin(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => UserLoginScreen()),
-    );
-  }
-
-  void navigateToGuardianLogin(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => GuardianLoginScreen()),
-    );
-  }
+  static const Color userButtonColor = Color(0xFFE91E63); // Pink
+  static const Color guardianButtonColor = Color(0xFF673AB7); // Purple
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Select Role')),
+      appBar: AppBar(
+        title: const Text('Select Role'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
               'Who are you?',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 40),
-            ElevatedButton.icon(
-              onPressed: () => navigateToUserLogin(context),
-              icon: const Icon(Icons.person),
-              label: const Text('I am a User'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pink,
-                minimumSize: const Size.fromHeight(50),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () => navigateToGuardianLogin(context),
-              icon: const Icon(Icons.security),
-              label: const Text('I am a Guardian'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.purple,
-                minimumSize: const Size.fromHeight(50),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.person),
+                label: const Text('I am a User'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: userButtonColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  textStyle: const TextStyle(fontSize: 18),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => UserLoginScreen()),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.shield),
+                label: const Text('I am a Guardian'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: guardianButtonColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  textStyle: const TextStyle(fontSize: 18),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => GuardianLoginScreen()),
+                  );
+                },
               ),
             ),
           ],

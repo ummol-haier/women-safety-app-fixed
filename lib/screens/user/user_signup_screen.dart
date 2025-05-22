@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'user_home_screen.dart';
 import '../../../database/user_db.dart';
-import 'package:ally/models/user_model.dart';
 
 
 class UserSignupScreen extends StatefulWidget {

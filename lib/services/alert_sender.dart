@@ -1,23 +1,24 @@
-// ignore: depend_on_referenced_packages
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../database/user_db.dart';
 
 class AlertSender {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> sendAlertToAllGuardians(BuildContext context) async {
     try {
-      final user = _auth.currentUser;
+      // Get logged-in user from local DB
+      final user = await UserDB.getLoggedInUser();
       if (user == null) throw Exception('No user logged in');
 
-      final userId = user.uid;
+      final userPhone = user.phone;
+      final userName = user.name;
 
       // Step 1: Get guardians from Firestore
       final guardiansSnapshot = await _firestore
           .collection('users')
-          .doc(userId)
+          .doc(userPhone)
           .collection('guardians')
           .get();
 
@@ -31,7 +32,7 @@ class AlertSender {
       for (final phone in guardianPhones) {
         await _firestore.collection('alerts').doc(phone).set({
           'isAlert': true,
-          'userName': user.displayName ?? 'Someone',
+          'userName': userName ?? 'Someone',
           'timestamp': FieldValue.serverTimestamp(),
         });
       }

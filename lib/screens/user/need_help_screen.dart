@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:ally/services/alert_sender.dart';
-import 'package:ally/models/user_model.dart';
-import 'package:ally/database/user_db.dart';
 
 class NeedHelpScreen extends StatelessWidget {
   const NeedHelpScreen({super.key});
